@@ -4,16 +4,25 @@ import java.util.Vector;
 
 
 public class IA_1 extends GameEntity {
-	 
-   public IA_1(int dir, Color couleur, int identifiant){
-	   super(dir,couleur,identifiant);
+
+	/**
+	 * constructeur avec paramètres
+	 * @param dir
+	 * @param couleur
+	 * @param identifiant
+	 */
+	public IA_1(int dir, Color couleur, int identifiant){
+		super(dir,couleur,identifiant);
 		sideLength=6;
 		couleur_init = couleur;
 		speed=2;
 		score = 0;       
-    }
-   
-  
+	}
+
+	/**
+	 * fonction utilisée pour décider de la nouvelle 
+	 * direction à donner à l'entité
+	 */
 	public void decideDirection(){
 		if(id!=0)//si ce n'est pas le joueur
 		{
@@ -23,7 +32,6 @@ public class IA_1 extends GameEntity {
 				int newDir;
 				Vector<Integer> dirPossibles = directionPossible();
 				int nb_essai =0;
-				//System.out.println(dirPossibles);
 				do{
 					newDir =dir.nextInt(4)*90;
 
@@ -33,13 +41,16 @@ public class IA_1 extends GameEntity {
 						|| newDir==(direction+180)%360 
 						|| !dirPossibles.contains(newDir))
 						&& nb_essai<100);
-				
+
 				direction=newDir;				
-				//System.out.println("new finale="+direction);
 			}
 		}    	
 	}
 
+	/**
+	 * vérifit si au coup suivant l'ia pourra avancer
+	 * @return true si peut avancer
+	 */
 	private boolean peutAvancer(){
 		if(direction == 0 && !TronGame.isWhite(xPos  + sideLength +speed, yPos)
 				|| direction == 0 && !TronGame.isWhite(xPos + sideLength+speed , yPos+ sideLength)
@@ -54,7 +65,11 @@ public class IA_1 extends GameEntity {
 		else
 			return true;
 	}
-	
+
+	/**
+	 * donne toutes les direction possibles à un moment t
+	 * @return vector des directions possibles
+	 */
 	private Vector<Integer> directionPossible(){
 		Vector<Integer> tab =new Vector<Integer>();
 		int direction_initiale=direction;

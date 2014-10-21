@@ -76,21 +76,22 @@ public class TronGame extends JPanel implements KeyListener, ActionListener {
 		System.out.println("---->Nouveau Round");
 		roundOver=false;
 
+		//sert pour le double buffering
 		offScreenGraphics.clearRect(0, 0, 1016, 736);
 		offScreenGraphics.setColor(Color.white);
 		offScreenGraphics.fillRect(10,10+60,getWidth()-20,getHeight()-60-20);
-
+		
+		//place les entités
 		entities[0].resetPos(getWidth()/6,getHeight()/2);
 		entities[1].resetPos(5*getWidth()/6,getHeight()/2);
 		entities[2].resetPos(getWidth()/2,getHeight()/4);
 		entities[3].resetPos(getWidth()/2,3*getHeight()/4);
 
+		//on mets les entités visible si ce n'est pas déjà ait
 		for(int i=0;i<nb_Entities;i++)
 			entities[i].setVisible();
 
 		timer.start();
-
-		//repaint();
 	}
 
 	/**
@@ -105,9 +106,25 @@ public class TronGame extends JPanel implements KeyListener, ActionListener {
 
 		if(roundOver)
 			afficherVictoire(g);
-
+		
+		decideDirectionIA();
+	}
+	
+	/**
+	 * chaque IA décide quelle direction elle va prendre
+	 */
+	private void decideDirectionIA(){
 		((IA_1)entities[1]).decideDirection();
-		((IA_3)entities[3]).decideDirection();
+		
+		int num=0;
+		if(entities[0].isVisible())//si le joueur est vivant on le suit
+			num =0;			
+		else if (entities[1].isVisible())//si l'ia 1 est vivante on la suit
+			num=1;
+		else//si l'ia2 est encore e, vie on la suit
+			num=2;
+		
+		((IA_3)entities[3]).decideDirection(entities[num].getX(), entities[num].getY());
 	}
 
 	/**
@@ -139,14 +156,14 @@ public class TronGame extends JPanel implements KeyListener, ActionListener {
 		g.setFont(f1);
 		g.setColor(Color.white);
 		
-		if(!partieOver){
+		if(!partieOver){//si seulement le round est finit
 			if(whoWon()==0)
 				g.drawString("Joueur a gagné le round",getWidth()-450, 40);
 				
 			else
 				g.drawString("IA_"+ whoWon()+" a gagné le round",getWidth()-450, 40);			
 		}
-		else if(partieOver){
+		else if(partieOver){//si en plus la partie est finie
 			if(whoWon()==0)
 				g.drawString("Joueur a gagné la partie",getWidth()-450, 40);
 			else
@@ -174,7 +191,7 @@ public class TronGame extends JPanel implements KeyListener, ActionListener {
 			timer.stop();
 			incScore(whoWon());
 		}
-		//match num
+		//match nul-> nouveau round au bout de 1.5 sec
 		else if(nbEntityAlive()==0 && !roundOver){
 			try {
 				Thread.sleep(1500);
@@ -206,22 +223,17 @@ public class TronGame extends JPanel implements KeyListener, ActionListener {
 	 * @return quelle entité a gagné
 	 */
 	public int whoWon(){
-		//timer.stop();
 		int entite_gagnante=0;
 		for(int j=0; j<nb_Entities;j++){
 			if(entities[j].isVisible()) {
 				System.out.println("entities[" + j + "] a gagné le round");
 				roundOver=true;
 				entite_gagnante =j;
-				//afficher msg victoire
 			}
 			if(entities[j].getScore()==3){
 				System.out.println("entities[" + j + "] a gagné la partie");
 				partieOver=true;
-				//afficher msg victoire
-				//System.out.println("po "+partieOver);
 			}
-			//repaint();	
 		}
 		return entite_gagnante;
 	}
@@ -231,7 +243,6 @@ public class TronGame extends JPanel implements KeyListener, ActionListener {
 	 * @param numEntity id de l'entité
 	 */
 	public void incScore(int numEntity){
-
 		entities[numEntity].setScore(entities[numEntity].getScore() + 1);
 		//System.out.println("score entities["+numEntity+"] = "+entities[numEntity].getScore());
 	}

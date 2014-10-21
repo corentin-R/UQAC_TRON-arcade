@@ -8,7 +8,7 @@ public class IA_3 extends GameEntity {
 	private int compteurDir;
 
 	/**
-	 * constructeur avec paramètres
+	 * constructeur avec paramÃ¨tres
 	 * @param dir
 	 * @param couleur
 	 * @param identifiant
@@ -22,9 +22,10 @@ public class IA_3 extends GameEntity {
 		compteurDir=0;
 	}
 
+
 	/**
-	 * fonction utilisée pour décider de la nouvelle 
-	 * direction à donner à l'entité
+	 * fonction utilisÃ©e pour dÃ©cider de la nouvelle 
+	 * direction Ã  donner Ã  l'entitÃ©
 	 */
 	public void decideDirection(int xCible, int yCible){
 		if(isVisible())//si ce n'est pas le joueur
@@ -35,10 +36,10 @@ public class IA_3 extends GameEntity {
 			System.out.println(direction);
 			System.out.println("cpt "+compteurDir);
 
-			if(compteurDir>10 || !peutAvancer())
+			if(compteurDir>3 || !peutAvancer())
 			{
 				compteurDir=0;
-
+				
 				if(Math.abs(xPos - xCible )>Math.abs(yPos - yCible))
 				{
 					if(xPos - xCible >5)
@@ -46,9 +47,6 @@ public class IA_3 extends GameEntity {
 					else if (xPos - xCible <5)
 						dirCible=0;
 
-				}
-				else
-				{
 					if(yPos - yCible >5)
 						dirCible= 90;
 					else if (yPos - yCible <5)
@@ -83,7 +81,7 @@ public class IA_3 extends GameEntity {
 						System.out.println("en x");
 						System.out.println("dirCible2/2 "+dirCible);
 					}
-
+					
 					if(dirPossibles.contains(dirCible))
 						direction=dirCible;
 					else
@@ -106,13 +104,13 @@ public class IA_3 extends GameEntity {
 			}
 
 			compteurDir++;
-
+			
 		}
 
 	}
 
 	/**
-	 * vérifit si au coup suivant l'ia pourra avancer
+	 * vÃ©rifit si au coup suivant l'ia pourra avancer
 	 * @return true si peut avancer
 	 */
 	private boolean peutAvancer(){
@@ -131,7 +129,7 @@ public class IA_3 extends GameEntity {
 	}
 
 	/**
-	 * donne toutes les direction possibles à un moment t
+	 * donne toutes les direction possibles Ã  un moment t
 	 * @return vector des directions possibles
 	 */
 	private Vector<Integer> directionPossible(){
@@ -145,6 +143,7 @@ public class IA_3 extends GameEntity {
 			}
 		}
 		direction=direction_initiale;
+		//System.out.println("-------------->dir "+direction);
 		return tab;
 	}
 }
