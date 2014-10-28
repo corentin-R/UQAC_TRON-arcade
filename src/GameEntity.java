@@ -1,67 +1,94 @@
 import java.awt.*;
 
-public class GameEntity {
+public class GameEntity extends Thread {
 
 	protected int xPos, yPos;//position
+	protected int xPos_init, yPos_init;
 	protected int sideLength;// which is the integer length of a side (of the square shaped body of our Cycle)
 	protected int direction;// 0,90,180,270 (right, up, left, down)
 	protected Color color;
 	protected Color couleur_init;
 	protected int speed;
-	protected  int score;
+	protected int score;
 	protected boolean visible;
 	protected int id;
-	
-	/**
-	 * constructeur par défault, pas utilisé
-	 */
-	public GameEntity(){
-		this(0,0,0,null, 0);
-		sideLength=0;
-		speed=0;
-		score = 0;
+	protected TronGame tron;
+
+	public GameEntity()
+	{
+		this(null, 0, Color.black, 99,0,0);
 	}
+
 	/**
 	 * constructeur utilisé
 	 * @param dir
 	 * @param couleur
 	 * @param num
 	 */
-	public GameEntity(int dir, Color couleur, int num){
-		this(0,0,0,null, num);
+	public GameEntity(TronGame game, int dir, Color couleur, int num, int x, int y){
+		xPos=x;
+		yPos=y;
+		xPos_init=xPos;;
+		yPos_init=yPos;;
 		sideLength=6;
 		direction=dir;
 		color=couleur  ;
 		couleur_init = couleur;
 		speed=2;
 		score = 0;
-	}
-	/**
-	 * constructeur plus complet pas utilisé
-	 * @param x
-	 * @param y
-	 * @param dir
-	 * @param couleur
-	 * @param num
-	 */
-	public GameEntity(int x, int y, int dir, Color couleur, int num){
-		xPos=x;
-		yPos=y;
-		sideLength=6;
-		direction=dir;
-		color=couleur;
-		couleur_init = couleur;
-		speed=2;
-		score = 0;
-		visible=true;
 		id=num;
+		tron=game;				
 	}
+
+	public void run(){
+		reset();
+		while(true)
+		{
+			while(this.isVisible()){
+				updatePos();
+
+				//System.out.println("id " + id +" num thread =  "+this.getName() +" = " +this.getState());
+				synchronized(tron.offScreenGraphics) {
+					draw((Graphics2D)tron.offScreenGraphics);
+				}
+				try {
+					Thread.sleep(15);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}		
+			}
+			/*synchronized(tron)
+			{
+				if(tron.isRoundOver())
+				{					
+					reset();
+				}
+					
+			}*/
+		}
+	}
+
+
+
+	public void reset(){
+		xPos=xPos_init;
+		yPos=yPos_init;
+		speed=2;
+		setVisible();
+		//System.out.println(id + " ------------> " + tron.isRoundOver());
+		synchronized(this){
+			notify();
+		}
+	}
+
 
 	/**
 	 * dessine un carré et affiche le score de l'entité
 	 * @param g
 	 */
 	public void draw(Graphics2D g) {
+
 		g.setColor(color);
 		g.fillRect(xPos,yPos,sideLength,sideLength);
 		Font f1 = new Font("Arial",Font.BOLD,20);
@@ -92,7 +119,7 @@ public class GameEntity {
 	 * mets à jour les coordonnées de l'entité en
 	 *  fonction de sa direction actuelle
 	 */
-	public void updatePos(){
+	synchronized public void updatePos(){
 		switch(direction){
 		case 0:
 			xPos += speed;
@@ -110,10 +137,16 @@ public class GameEntity {
 			break;
 		}
 		if(willDie()){
-			setInvisible();
-			System.out.println("entities[" + id + "] a perdu");
+			visible=false;
+			System.out.println("entities[" + id + "] a perdu " );			
+			try {
+				wait();
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}	
+			
 		}
-		//System.out.println("pos f  "+yPos +" "+xPos+" "+speed+" "+direction);
 	}
 
 	/**
@@ -152,34 +185,17 @@ public class GameEntity {
 	}
 
 	/**
-	 * remets l'entité aux coordonnées voulues
-	 * @param x
-	 * @param y
-	 */
-	public void resetPos(int x, int y){
-		xPos=x;
-		yPos=y;
-	}
-	
-	/**
 	 * 
 	 * @return position en x
 	 */
 	public int getX(){ return xPos;}
-	
+
 	/**
 	 * 	
 	 * @return position en y
 	 */
 	public int getY(){ return yPos;}
 
-	/**
-	 * qd l'entité est morte on s'assure de ne plus l'affichher
-	 */
-	public void setInvisible(){
-		visible=false;
-		color=Color.white;
-	}
 
 	/**
 	 * détermine si l'entité est morte ou pas
@@ -192,8 +208,9 @@ public class GameEntity {
 	 */
 	public void setVisible(){
 		visible=true;
-		color=couleur_init;
 	}
+
+
 
 
 }

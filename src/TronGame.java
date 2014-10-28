@@ -17,9 +17,7 @@ public class TronGame extends JPanel implements KeyListener, ActionListener {
 	private GameEntity[] entities = new GameEntity[nb_Entities];
 	private Timer timer;// sert à  gérer le framerate
 	private static Image offScreenBuffer;// needed for double buffering graphics
-	private Graphics offScreenGraphics;// needed for double buffering graphics
-
-
+	public Graphics offScreenGraphics;// needed for double buffering graphics
 	private boolean roundOver, partieOver;
 
 	/**
@@ -49,8 +47,8 @@ public class TronGame extends JPanel implements KeyListener, ActionListener {
 		partieOver=false;
 		offScreenBuffer = createImage(getWidth(), getHeight());// should be 1016x736
 		offScreenGraphics = offScreenBuffer.getGraphics();
-		timer = new Timer(10, this);//génere des impulsions tous les x ms, créer un framerate
-		// timer fires every 10 milliseconds.. invokes method actionPerformed()
+		timer = new Timer(2, this);//génere des impulsions tous les x ms, créer un framerate
+
 
 		offScreenGraphics.clearRect(0, 0, 1016, 736);
 		offScreenGraphics.setColor(Color.white);
@@ -58,12 +56,17 @@ public class TronGame extends JPanel implements KeyListener, ActionListener {
 
 		Random direction = new Random();
 		direction.nextInt(4);
+		
 		// initiatlise les GameEntity
-		entities[0] = new GameEntity(direction.nextInt(4)*90 ,Color.BLUE,0);
-		entities[1] = new IA_1(direction.nextInt(4)*90 ,Color.RED,1);
-		entities[2] = new GameEntity(direction.nextInt(4)*90,Color.GREEN,2);
-		entities[3] = new IA_3(direction.nextInt(4)*90,Color.YELLOW,3);
+		entities[0] = new  GameEntity(this, direction.nextInt(4)*90 ,Color.BLUE,0,getWidth()/6,getHeight()/2 );
+		entities[1] = new  IA_1(this, direction.nextInt(4)*90 ,Color.RED,1,5*getWidth()/6,getHeight()/2);
+		entities[2] = new  GameEntity(this, direction.nextInt(4)*90,Color.GREEN,2,getWidth()/2,getHeight()/4);
+		entities[3] = new  IA_3(this, direction.nextInt(4)*90,Color.YELLOW,3,getWidth()/2,3*getHeight()/4);
 
+		entities[0].start();
+		entities[1].start();
+		entities[2].start();
+		entities[3].start();
 
 		initRound();
 	}
@@ -74,24 +77,23 @@ public class TronGame extends JPanel implements KeyListener, ActionListener {
 	public void initRound() {
 
 		System.out.println("---->Nouveau Round");
-		roundOver=false;
+		setRoundOver(false);
 
 		//sert pour le double buffering
 		offScreenGraphics.clearRect(0, 0, 1016, 736);
 		offScreenGraphics.setColor(Color.white);
 		offScreenGraphics.fillRect(10,10+60,getWidth()-20,getHeight()-60-20);
 		
-		//place les entités
-		entities[0].resetPos(getWidth()/6,getHeight()/2);
-		entities[1].resetPos(5*getWidth()/6,getHeight()/2);
-		entities[2].resetPos(getWidth()/2,getHeight()/4);
-		entities[3].resetPos(getWidth()/2,3*getHeight()/4);
-
-		//on mets les entités visible si ce n'est pas déjà ait
-		for(int i=0;i<nb_Entities;i++)
-			entities[i].setVisible();
-
 		timer.start();
+
+		for(GameEntity it : entities)
+		{
+			if(!it.isAlive()){
+				it.setVisible();
+				it.notify();
+			}
+			it.reset();			
+		}
 	}
 
 	/**
@@ -100,49 +102,13 @@ public class TronGame extends JPanel implements KeyListener, ActionListener {
 	 */
 	public void paint(Graphics g) {
 
-		draw((Graphics2D) offScreenGraphics);
-
+		g.setColor(Color.BLACK);
 		g.drawImage(offScreenBuffer, 0, 0, this);
 
-		if(roundOver)
+		if(isRoundOver())
 			afficherVictoire(g);
-		
-		decideDirectionIA();
-	}
-	
-	/**
-	 * chaque IA décide quelle direction elle va prendre
-	 */
-	private void decideDirectionIA(){
-		((IA_1)entities[1]).decideDirection();
-		
-		int num=0;
-		if(entities[0].isVisible())//si le joueur est vivant on le suit
-			num =0;			
-		else if (entities[1].isVisible())//si l'ia 1 est vivante on la suit
-			num=1;
-		else//si l'ia2 est encore e, vie on la suit
-			num=2;
-		
-		((IA_3)entities[3]).decideDirection(entities[num].getX(), entities[num].getY());
 	}
 
-	/**
-	 * blit tous les GameEntity
-	 * @param Graphics2D g
-	 */
-	public void draw(Graphics2D g) {
-
-		g.setColor(Color.BLACK);
-		// Blit les GameEntity
-		for(int i=0; i<nb_Entities;i++){
-			if(entities[i].isVisible()){
-
-				entities[i].draw(g);
-				//System.out.println("i= "+i);
-			}
-		}	
-	}
 
 	/**
 	 * affiche un message de victoire en haut à droite de l'écran si victoire
@@ -155,11 +121,11 @@ public class TronGame extends JPanel implements KeyListener, ActionListener {
 		Font f2 = new Font("Arial",Font.PLAIN,10);
 		g.setFont(f1);
 		g.setColor(Color.white);
-		
+
 		if(!partieOver){//si seulement le round est finit
 			if(whoWon()==0)
 				g.drawString("Joueur a gagné le round",getWidth()-450, 40);
-				
+
 			else
 				g.drawString("IA_"+ whoWon()+" a gagné le round",getWidth()-450, 40);			
 		}
@@ -178,21 +144,15 @@ public class TronGame extends JPanel implements KeyListener, ActionListener {
 	 * @param ActionEvent e l'évenement 
 	 */
 	public void actionPerformed(ActionEvent e) {
-
 		// update
 		repaint();
-		for(int i=0; i<nb_Entities;i++) {
-			if(entities[i].isVisible()) {
-				entities[i].updatePos();
-			}
-		}
 
-		if(nbEntityAlive()==1 && !roundOver){
+		if(nbEntityAlive()==1 && !isRoundOver()){
 			timer.stop();
 			incScore(whoWon());
 		}
 		//match nul-> nouveau round au bout de 1.5 sec
-		else if(nbEntityAlive()==0 && !roundOver){
+		else if(nbEntityAlive()==0 && !isRoundOver()){
 			try {
 				Thread.sleep(1500);
 			} catch (InterruptedException e1) {
@@ -222,22 +182,24 @@ public class TronGame extends JPanel implements KeyListener, ActionListener {
 	 * et qui a gagné
 	 * @return quelle entité a gagné
 	 */
+	@SuppressWarnings("deprecation")
 	public int whoWon(){
 		int entite_gagnante=0;
 		for(int j=0; j<nb_Entities;j++){
 			if(entities[j].isVisible()) {
 				System.out.println("entities[" + j + "] a gagné le round");
-				roundOver=true;
+				setRoundOver(true);
 				entite_gagnante =j;
 			}
 			if(entities[j].getScore()==3){
 				System.out.println("entities[" + j + "] a gagné la partie");
+				entities[j].stop();
 				partieOver=true;
 			}
 		}
 		return entite_gagnante;
 	}
-	
+
 	/**
 	 * incrémente le score  de l'entité gagnante
 	 * @param numEntity id de l'entité
@@ -263,32 +225,23 @@ public class TronGame extends JPanel implements KeyListener, ActionListener {
 			entities[0].setDirection(90);
 		else if (keyCode == KeyEvent.VK_DOWN)
 			entities[0].setDirection(270);
-	}
 
-	/**
-	 * gère les touches relachées
-	 */
-	public void keyReleased(KeyEvent e) {
-		int keyCode = e.getKeyCode();
-		if (keyCode == KeyEvent.VK_SPACE) {
-
+		else if (keyCode == KeyEvent.VK_SPACE) {
 			if (!timer.isRunning()) {
-				if(roundOver && !partieOver)
+				if(isRoundOver() && !partieOver)
 					initRound();
 				else if( partieOver)
+				{
 					initPartie();
+				}
+					
 			}
-		} else if (keyCode == KeyEvent.VK_ESCAPE) {
-			// kill game process... close the window
+		} 
+		else if (keyCode == KeyEvent.VK_ESCAPE) {
 			System.exit(0);
 		}
 	}
 
-	/**
-	 * this method is needed for implementing interface KeyListener
-	 */
-	public void keyTyped(KeyEvent e) {
-	}
 
 	/**
 	 * retourne si un pixel est blanc ou pas
@@ -305,6 +258,31 @@ public class TronGame extends JPanel implements KeyListener, ActionListener {
 		} catch (Exception ex) {
 			return false;
 		}
+	}
+
+	@Override
+	public void keyReleased(KeyEvent e) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void keyTyped(KeyEvent e) {
+		// TODO Auto-generated method stub
+	}
+
+	public boolean isRoundOver() {
+		return roundOver;
+	}
+
+	public void setRoundOver(boolean roundOver) {
+		this.roundOver = roundOver;
+	}
+	
+	public GameEntity getEntity(int numEntity){
+		if (numEntity<nb_Entities);
+			GameEntity ge = entities[numEntity];
+		return ge;
 	}
 
 }

@@ -1,4 +1,5 @@
 import java.awt.Color;
+import java.awt.Graphics2D;
 import java.util.Random;
 import java.util.Vector;
 
@@ -6,19 +7,54 @@ import java.util.Vector;
 public class IA_1 extends GameEntity {
 
 	/**
-	 * constructeur avec paramètres
+	 * constructeur utilisé
 	 * @param dir
 	 * @param couleur
-	 * @param identifiant
+	 * @param num
 	 */
-	public IA_1(int dir, Color couleur, int identifiant){
-		super(dir,couleur,identifiant);
+	public IA_1(TronGame game, int dir, Color couleur, int num, int x, int y){
+		xPos=x;
+		yPos=y;
+		xPos_init=xPos;;
+		yPos_init=yPos;;
 		sideLength=6;
+		direction=dir;
+		color=couleur  ;
 		couleur_init = couleur;
 		speed=2;
-		score = 0;       
+		score = 0;
+		id=num;
+		tron=game;				
 	}
 
+
+	/**
+	 * méthode run appellée lors du start()
+	 */	
+	public void run(){
+		reset();
+		while(true)
+		{
+			while(this.isVisible()){
+				updatePos();
+				decideDirection();
+
+				//System.out.println("id " + id +" num thread =  "+this.getName() +" = " +this.getState());
+				synchronized(tron.offScreenGraphics) {
+					draw((Graphics2D)tron.offScreenGraphics);
+				}
+				try {
+					Thread.sleep(15);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}		
+			}
+		}
+	}
+
+	
+	
 	/**
 	 * fonction utilisée pour décider de la nouvelle 
 	 * direction à donner à l'entité

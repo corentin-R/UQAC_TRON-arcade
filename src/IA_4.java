@@ -3,7 +3,7 @@ import java.util.Random;
 import java.util.Vector;
 
 
-public class IA_3 extends GameEntity {
+public class IA_4 extends GameEntity {
 
 	private int compteurDir;
 
@@ -13,8 +13,8 @@ public class IA_3 extends GameEntity {
 	 * @param couleur
 	 * @param identifiant
 	 */
-	public IA_3(int dir, Color couleur, int identifiant){
-		super(dir,couleur,identifiant);
+	public IA_4(int dir, Color couleur, int identifiant){
+	//	super(dir,couleur,identifiant);
 		sideLength=6;
 		couleur_init = couleur;
 		speed=2;
